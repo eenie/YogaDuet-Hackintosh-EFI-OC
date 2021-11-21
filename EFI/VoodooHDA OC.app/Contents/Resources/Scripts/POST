@@ -1,0 +1,51 @@
+#!/bin/bash
+#
+# By chris1111
+# Script config VoodooHDA
+#
+
+arrays=$(/usr/libexec/plistbuddy -c "Print Kernel:Add" /Volumes/ESP/EFI/OC/config.plist |grep -ac Dict)
+index=$((arrays - 1))
+
+if [ $(/usr/libexec/PlistBuddy -c "Print :Kernel:Add" /Volumes/ESP/EFI/OC/config.plist | grep -c "VoodooHDA.kext") -gt 0 ]; then
+	while [ $index -ge 0 ]; do
+		if [[ $(/usr/libexec/PlistBuddy -c "Print ':Kernel:Add:$index'" /Volumes/ESP/EFI/OC/config.plist | grep -ac "VoodooHDA.kext" ) -eq 1 ]]; then
+			/usr/libexec/plistbuddy -c "Delete ':Kernel:Add:$index'" /Volumes/ESP/EFI/OC/config.plist
+			index=$((index - 1))
+		else
+			index=$((index - 1))
+		fi
+	done
+	echo " "
+	echo "Removed Previous VoodooHDA.kext in /Volumes/ESP/EFI/OC/config.plist"
+fi
+
+
+/usr/libexec/PlistBuddy -c "Merge './Plist-Buddy' Kernel:Add" /Volumes/ESP/EFI/OC/config.plist
+
+arrays=$(/usr/libexec/plistbuddy -c "Print Kernel:Add" /Volumes/ESP/EFI/OC/config.plist |grep -ac Dict)
+index=$((arrays - 1))
+
+if [ $(/usr/libexec/PlistBuddy -c "Print :Kernel:Add" /Volumes/ESP/EFI/OC/config.plist | grep -c "AppleALC.kext") -gt 0 ]; then
+	while [ $index -ge 0 ]; do
+		if [[ $(/usr/libexec/PlistBuddy -c "Print ':Kernel:Add:$index'" /Volumes/ESP/EFI/OC/config.plist | grep -ac "AppleALC.kext" ) -eq 1 ]]; then
+			/usr/libexec/plistbuddy -c "Delete ':Kernel:Add:$index'" /Volumes/ESP/EFI/OC/config.plist
+			index=$((index - 1))
+		else
+			index=$((index - 1))
+		fi
+	done
+	echo " "
+	echo "Removed Previous AppleALC.kext Kext in /Volumes/ESP/EFI/OC/config.plist"
+fi
+
+rm -rf /Volumes/ESP/EFI/OC/kexts/VoodooHDA.kext
+cp -r ./VoodooHDA.kext /Volumes/ESP/EFI/OC/kexts
+rm -rf /Volumes/ESP/EFI/OC/kexts/AppleALC.kext
+cp -r ./VoodooHDA.prefPane /Library/PreferencePanes
+mkdir -p /usr/local/bin
+Sleep 1
+cp -Rp ./getdump /usr/local/bin
+
+
+exit 0
